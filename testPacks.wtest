@@ -1,1 +1,40 @@
-// completar
+import packs.*
+
+describe "1. Calcular el valor final de un pack" {
+    const coordinador = new Coordinador(rol = guia,estaMotivado= true,cantidadViajesRealizados=1,añosExperiencia=1)
+    const packNacional1 = new PackNacional(duracionEnDias=14,precioBase=100000,coordinadorACargo= coordinador,provinciaDestino="Chaco")
+    test "Un pack nacional sin beneficios vigentes devuelve el mismo precio base" {
+        assert.equals(100000, packNacional1.valorFinal())
+    }
+
+    test "Un pack nacional con 2 beneficios vigentes suma correctamente sus costos al precio base" {
+        const pack = new PackNacional(precioBase = 100000, coordinadorACargo = coordinador)
+        const beneficio1 = new Beneficio(costo = 5000, estaVigente = true)
+        const beneficio2 = new Beneficio(costo = 2000, estaVigente = true)
+        const beneficio3 = new Beneficio(costo = 10000, estaVigente = false)
+
+        pack.agregarBeneficio(beneficio1)
+        pack.agregarBeneficio(beneficio2)
+        pack.agregarBeneficio(beneficio3)
+
+        assert.equals(107000, pack.valorFinal())
+    }
+
+    test "Un pack internacional sin beneficios vigentes calcula correctamente el total con el 20% de recargo" {
+        const pack = new PackInternacional(precioBase = 200000, coordinadorACargo = coordinador)
+        const beneficioNoVigente = new Beneficio(costo = 15000, estaVigente = false)
+        pack.agregarBeneficio(beneficioNoVigente)
+
+        assert.equals(240000, pack.valorFinal())
+    }
+    
+    test "Un pack internacional con beneficios vigentes calcula correctamente el total con el 20% de recargo" {
+        const pack = new PackInternacional(precioBase = 200000, coordinadorACargo = coordinador)
+        const beneficio1 = new Beneficio(costo = 10000, estaVigente = true)
+        const beneficio2 = new Beneficio(costo = 15000, estaVigente = true)
+        pack.agregarBeneficio(beneficio1)
+        pack.agregarBeneficio(beneficio2)
+
+        assert.equals(270000, pack.valorFinal())
+    }
+}
