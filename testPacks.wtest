@@ -2,39 +2,86 @@ import packs.*
 
 describe "1. Calcular el valor final de un pack" {
     const coordinador = new Coordinador(rol = guia,estaMotivado= true,cantidadViajesRealizados=1,añosExperiencia=1)
+
     const packNacional1 = new PackNacional(duracionEnDias=14,precioBase=100000,coordinadorACargo= coordinador,provinciaDestino="Chaco")
+    const packInternacional1 = new PackInternacional (duracionEnDias=10,precioBase=500000,coordinadorACargo=coordinador,paisDestino="Brasil",cantidadEscalas=1,esLugarDeInteres=true)
+
+    const beneficio1 = new Beneficio(tipo="Traslados privados",costo=10000,estaVigente=true)
+    const beneficio2 = new Beneficio(tipo="Seguros",costo=5000,estaVigente=true)
+    const beneficio3 = new Beneficio(tipo="Seguros",costo=5000,estaVigente=false)
     test "Un pack nacional sin beneficios vigentes devuelve el mismo precio base" {
         assert.equals(100000, packNacional1.valorFinal())
     }
 
     test "Un pack nacional con 2 beneficios vigentes suma correctamente sus costos al precio base" {
-        const pack = new PackNacional(precioBase = 100000, coordinadorACargo = coordinador)
-        const beneficio1 = new Beneficio(costo = 5000, estaVigente = true)
-        const beneficio2 = new Beneficio(costo = 2000, estaVigente = true)
-        const beneficio3 = new Beneficio(costo = 10000, estaVigente = false)
-
-        pack.agregarBeneficio(beneficio1)
-        pack.agregarBeneficio(beneficio2)
-        pack.agregarBeneficio(beneficio3)
-
-        assert.equals(107000, pack.valorFinal())
+        packNacional1.agregarBeneficio(beneficio1)
+        packNacional1.agregarBeneficio(beneficio2)
+        assert.equals(115000, packNacional1.valorFinal())
     }
 
     test "Un pack internacional sin beneficios vigentes calcula correctamente el total con el 20% de recargo" {
-        const pack = new PackInternacional(precioBase = 200000, coordinadorACargo = coordinador)
-        const beneficioNoVigente = new Beneficio(costo = 15000, estaVigente = false)
-        pack.agregarBeneficio(beneficioNoVigente)
-
-        assert.equals(240000, pack.valorFinal())
+        packInternacional1.agregarBeneficio(beneficio3)
+        assert.equals(600000, packInternacional1.valorFinal())
     }
     
     test "Un pack internacional con beneficios vigentes calcula correctamente el total con el 20% de recargo" {
-        const pack = new PackInternacional(precioBase = 200000, coordinadorACargo = coordinador)
-        const beneficio1 = new Beneficio(costo = 10000, estaVigente = true)
-        const beneficio2 = new Beneficio(costo = 15000, estaVigente = true)
-        pack.agregarBeneficio(beneficio1)
-        pack.agregarBeneficio(beneficio2)
-
-        assert.equals(270000, pack.valorFinal())
+       packInternacional1.agregarBeneficio(beneficio1)
+       assert.equals(612000, packInternacional1.valorFinal())
     }
+}
+describe "2 test para coordinadores" {
+    const guia1 = new Coordinador(cantidadViajesRealizados=21,estaMotivado=true,añosExperiencia=5,rol= guia)
+    const asistenteLogistico1 = new Coordinador(cantidadViajesRealizados=120,estaMotivado=true,añosExperiencia=2,rol= asistenteLogist)
+    const acompañante1 = new Coordinador(cantidadViajesRealizados=21,estaMotivado=true,añosExperiencia=2,rol= acompanante)
+
+
+  test "Un guía motivado con 21 viajes realizados es considerado altamente calificado." {
+    assert.that(guia1.esAltamenteCalificado())
+  }
+  test "Un asistente logístico con menos de 3 años de experiencia no es calificado, aunque tenga muchos viajes." {
+    assert.notThat(asistenteLogistico1.esAltamenteCalificado())
+  }
+  test "Un acompañante con cualquier cantidad de viajes es siempre calificado si supera los 20." {
+    assert.that(acompañante1.esAltamenteCalificado())
+  }
+}
+describe "3 testeo pack premium" {
+    const guia1 = new Coordinador(cantidadViajesRealizados=21,estaMotivado=true,añosExperiencia=5,rol= guia)
+    const packInternacional2 = new PackInternacional (duracionEnDias=10,precioBase=500000,coordinadorACargo=guia1,paisDestino="Brasil",cantidadEscalas=0,esLugarDeInteres=true)
+    const packNacional2 = new PackNacional(duracionEnDias=14,precioBase=100000,coordinadorACargo= guia1,provinciaDestino="Chaco")
+  test "un pack internacional que es lugar de interes,sin escalas pero dura 10 dias no es premium" {
+    assert.notThat(packInternacional2.esPremium())
+  }
+  test "un pack nacional que tiene 20 dias de duracion y su coordinador es altamente calificado es premium" {
+    assert.that(packNacional2.esPremium())
+  }
+}
+describe "4 testeo pack provinciales" {
+    const guia1 = new Coordinador(cantidadViajesRealizados=21,estaMotivado=true,añosExperiencia=5,rol= guia)
+    const packProvincial1 = new PackProvincial(duracionEnDias=14,precioBase=100000,coordinadorACargo= guia1,provinciaDestino="Chaco",cantCiudadesAVisitar=6)
+    const beneficio4 = new Beneficio(tipo="Traslados privados",costo=10000,estaVigente=true)
+    const beneficio5 = new Beneficio(tipo="Seguros",costo=5000,estaVigente=true)
+    const beneficio6 = new Beneficio(tipo="Seguros",costo=5000,estaVigente=true)
+  test "un pack provincial con 5 actividades, con 5 ciudades a visitar y con 3 beneficios vigentes es premium" {
+    packProvincial1.agregarBeneficio(beneficio4)
+    packProvincial1.agregarBeneficio(beneficio5)
+    packProvincial1.agregarBeneficio(beneficio6)
+    packProvincial1.agregarActividad("caminata")
+    packProvincial1.agregarActividad("karaoke")
+    packProvincial1.agregarActividad("sacarfotos")
+    packProvincial1.agregarActividad("senderismo")
+
+    assert.that(packProvincial1.esPremium())
+  }
+  test "un pack provincial que es premium tiene un valor final de" {
+    packProvincial1.agregarBeneficio(beneficio4)
+    packProvincial1.agregarBeneficio(beneficio5)
+    packProvincial1.agregarBeneficio(beneficio6)
+    packProvincial1.agregarActividad("caminata")
+    packProvincial1.agregarActividad("karaoke")
+    packProvincial1.agregarActividad("sacarfotos")
+    packProvincial1.agregarActividad("senderismo")
+
+    assert.equals(126000, packProvincial1.valorFinal())
+  }
 }

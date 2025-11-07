@@ -16,6 +16,7 @@ class PackDeViaje {
     method valorFinal() {
         return precioBase + self.costoBeneficiosVigentes()
     }
+    method esPremium()
 }
 
 class PackNacional inherits PackDeViaje {
@@ -25,6 +26,33 @@ class PackNacional inherits PackDeViaje {
     method agregarActividad(actividad) {
         actividades.add(actividad)
     }
+    override method esPremium(){
+        return duracionEnDias > 10 && coordinadorACargo.esAltamenteCalificado()
+    }
+}
+
+class PackProvincial inherits PackNacional {
+  var cantCiudadesAVisitar
+
+  override method esPremium(){
+    return  self.tieneAlMenos4Actividades() &&
+            self.cantCiudadesAVisitarEsMayorA5() &&
+            self.tiene3BeneficiosVigentes()
+  }
+  method tieneAlMenos4Actividades() {
+    return actividades.size() >= 4
+  }
+  method cantCiudadesAVisitarEsMayorA5() {
+    return cantCiudadesAVisitar > 5
+  }
+  method tiene3BeneficiosVigentes(){
+    return beneficiosEspeciales.filter({b=>b.estaVigente()}).size()>=3
+  } 
+  override method valorFinal() {
+    return if(self.esPremium()){
+        super() * 1.05
+    } else{super()}
+  } 
 }
 
 class PackInternacional inherits PackDeViaje {
@@ -36,6 +64,9 @@ class PackInternacional inherits PackDeViaje {
         const valorConBeneficios = super()
         return valorConBeneficios * 1.2
     }
+    override method esPremium(){
+        return esLugarDeInteres && duracionEnDias > 20 && cantidadEscalas == 0
+    }
 }
 
 
@@ -45,9 +76,11 @@ class Coordinador {
     var estaMotivado
     var añosExperiencia
     var rol
-	const rolesValidos = [guia, asistenteLogistico, acompanante]
+	const rolesValidos = [guia, asistenteLogist, acompanante]
 
-	method rol() {
+	method añosExperiencia() = añosExperiencia
+    method estaMotivado() = estaMotivado
+    method rol() {
 		return rol
 	} 
     method cambiarRol(nuevoRol) {
@@ -56,14 +89,32 @@ class Coordinador {
         }
         else { self.error("Rol invalido")}
     }
+    method esAltamenteCalificado() {
+        return cantidadViajesRealizados > 20 && rol.cumpleCondicion(self)
+    }
+
 }
 
-object guia {}
-object asistenteLogistico {}
-object acompanante {}
+object guia {
+    method cumpleCondicion(unCordinador) {
+        return unCordinador.estaMotivado()
+    }
+}
+object asistenteLogist {
+    method cumpleCondicion(unCordinador){
+        return unCordinador.añosExperiencia() >= 3
+    }
+}
+object acompanante {
+    method cumpleCondicion(unCordinador){
+        return true
+    }
+}
 
 class Beneficio {
     var tipo
     var costo
     var estaVigente
+    method estaVigente() = estaVigente
+    method costo() = costo 
 }
